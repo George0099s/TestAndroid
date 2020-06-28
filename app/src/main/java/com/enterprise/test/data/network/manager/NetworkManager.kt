@@ -1,9 +1,11 @@
 package com.enterprise.test.data.network.manager
 
 import android.util.Log
+import com.enterprise.test.App
 import com.enterprise.test.data.network.NetworkService
 import com.enterprise.test.data.network.api.API
 import com.enterprise.test.data.network.callback.TokenCallback
+import com.enterprise.test.data.network.pojo.geo.GeoItem
 import com.enterprise.test.data.network.pojo.token.CreateToken
 import com.enterprise.test.data.network.pojo.token.Token
 import retrofit2.Call
@@ -21,21 +23,47 @@ class NetworkManager {
         val service: API = retrofit.create(API::class.java)
         val call: Call<Token> = service.createToken(deviceInfo)
 
-        Log.d("123", call.request().body().toString())
+        Log.d("$TAG Token", call.request().body().toString())
         call.enqueue(object : Callback<Token> {
             override fun onResponse(call: Call<Token>, response: Response<Token>
             ) {
-                Log.d(TAG, response.body().toString())
+                Log.d("$TAG Token", response.body().toString())
 
                 if (response.body() != null) {
                     val model: Token = response.body()!!
-                      Log.d(TAG, model.toString())
+                      Log.d("$TAG Token", model.toString())
                     callback.onTokenCreated(model)
                 }
             }
 
             override fun onFailure(call: Call<Token>, t: Throwable) {
-                Log.d(TAG, t.message)
+                Log.d("$TAG Token", t.message)
+            }
+        })
+    }
+
+    fun sendGeo(token: String,geo: GeoItem) {
+        val retrofit: Retrofit = NetworkService.instance!!.retrofit
+
+        val service: API = retrofit.create(API::class.java)
+        val call: Call<Token> = service.sendGeo("token", geo)
+
+        Log.d("123", token + " " + call.request().header("Authorization") + " " + call.request().url())
+        call.enqueue(object : Callback<Token> {
+            override fun onResponse(call: Call<Token>, response: Response<Token>
+            ) {
+                Log.d("$TAG sendGeo", response.body().toString())
+
+
+//                if (response.body() != null) {
+//                    val model: Token = response.body()!!
+//                      Log.d(TAG, model.toString())
+//                    callback.onTokenCreated(model)
+//                }
+            }
+
+            override fun onFailure(call: Call<Token>, t: Throwable) {
+                Log.d("$TAG sendGeo", t.message)
             }
         })
     }

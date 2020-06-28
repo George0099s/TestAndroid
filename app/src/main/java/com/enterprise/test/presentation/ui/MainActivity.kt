@@ -10,6 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.enterprise.test.App
 import com.enterprise.test.R
 import com.enterprise.test.data.network.manager.NetworkManager
+import com.enterprise.test.data.network.pojo.geo.GeoItem
+import com.enterprise.test.data.network.pojo.geo.Point
 import com.enterprise.test.data.network.pojo.token.DeviceInfo
 import com.enterprise.test.data.network.pojo.token.CreateToken
 import com.enterprise.test.presentation.viewmodel.MainViewModel
@@ -51,8 +53,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun sendGeo(view: View) {
-        Toast.makeText(this, App.instance!!.sharedPreferences!!.getString("token",null), Toast.LENGTH_LONG).show()
-
+        Toast.makeText(this, App.instance!!.sharedPreferences!!.getString("token",""), Toast.LENGTH_LONG).show()
+        networkManager.sendGeo(App.instance!!.sharedPreferences!!.getString("token","")!!,GeoItem(Point(55.66969, 55.66969), "2020-06-28 06:38", 60, 2101015, 5))
     }
 
 
