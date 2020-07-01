@@ -8,7 +8,7 @@ class NetworkService private constructor() {
 
     companion object {
         private var networkService: NetworkService? = null
-        private const val BASE_URL = "https://testdriver.iwayex.com/v2/"
+        const val BASE_URL = "https://testdriver.iwayex.com/v2/"
         val instance: NetworkService?
             get() {
                 if (networkService == null) {

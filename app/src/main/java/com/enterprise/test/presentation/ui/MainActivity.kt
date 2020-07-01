@@ -6,11 +6,13 @@ import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.enterprise.test.App
 import com.enterprise.test.R
 import com.enterprise.test.data.network.manager.NetworkManager
 import com.enterprise.test.data.network.pojo.geo.GeoItem
+import com.enterprise.test.data.network.pojo.geo.IsSend
 import com.enterprise.test.data.network.pojo.geo.Point
 import com.enterprise.test.data.network.pojo.token.DeviceInfo
 import com.enterprise.test.data.network.pojo.token.CreateToken
@@ -24,11 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
     private val login = "917428730930"
     private val password = "351597"
-    private var deviceInfo: JSONObject? = null
-    private val networkManager = NetworkManager()
-    @SuppressLint("HardwareIds")
 
-    private val os = "android"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -47,14 +45,22 @@ class MainActivity : AppCompatActivity() {
                 ), login, password
             )
         viewModel.createToken(createToken)
+        viewModel.geoLiveData.observe(this, isDataSend())
         send = findViewById(R.id.send_geo)
-        send.setOnClickListener { sendGeo(it);}
+        send.setOnClickListener { sendGeo()}
 
     }
 
-    private fun sendGeo(view: View) {
-        Toast.makeText(this, App.instance!!.sharedPreferences!!.getString("token",""), Toast.LENGTH_LONG).show()
-        networkManager.sendGeo(App.instance!!.sharedPreferences!!.getString("token","")!!,GeoItem(Point(55.66969, 55.66969), "2020-06-28 06:38", 60, 2101015, 5))
+    private fun isDataSend() = Observer<IsSend>{
+        if(it.result){
+            Toast.makeText(this, "geo was saved", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "geo was not saved, try again", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun sendGeo() {
+        viewModel.sendGeo()
     }
 
 

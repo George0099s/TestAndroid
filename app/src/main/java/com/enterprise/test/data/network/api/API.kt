@@ -1,8 +1,11 @@
 package com.enterprise.test.data.network.api
 
 import com.enterprise.test.data.network.pojo.geo.GeoItem
+import com.enterprise.test.data.network.pojo.geo.IsSend
 import com.enterprise.test.data.network.pojo.token.CreateToken
 import com.enterprise.test.data.network.pojo.token.Token
+import io.reactivex.Observable
+import io.reactivex.Observer
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -13,5 +16,5 @@ interface API {
 
 
     @POST("locations/create")
-    fun sendGeo(@Query("Authorization") token: String, @Body geo: GeoItem): Call<Token>
+    fun sendGeo(@Body geo: GeoItem): Call<IsSend>
 }
