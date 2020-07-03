@@ -1,51 +1,80 @@
 package com.enterprise.test.presentation.viewmodel
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import android.view.View
 import android.widget.Toast
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.enterprise.test.App
-import com.enterprise.test.data.network.callback.CallbackGeo
-import com.enterprise.test.data.network.callback.TokenCallback
 import com.enterprise.test.data.network.manager.NetworkManager
-import com.enterprise.test.data.network.pojo.geo.GeoItem
+import com.enterprise.test.data.network.pojo.driverinfo.DriverInfo
+import com.enterprise.test.data.network.pojo.geo.GeoItemX
+import com.enterprise.test.data.network.pojo.geo.GeoX
 import com.enterprise.test.data.network.pojo.geo.IsSend
-import com.enterprise.test.data.network.pojo.geo.Point
+import com.enterprise.test.data.network.pojo.geo.PointX
 import com.enterprise.test.data.network.pojo.token.CreateToken
-import com.enterprise.test.data.network.pojo.token.Token
 import com.enterprise.test.domain.Repository
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 
-class MainViewModel() : ViewModel(),CallbackGeo, TokenCallback {
+class MainViewModel() : ViewModel() {
     private val repository = Repository()
     var context: Context? = null
-    val networkManager = NetworkManager()
-
     var geoLiveData: MutableLiveData<IsSend> = MutableLiveData()
-    fun createToken(deviceInfo: CreateToken){
-        repository.createToken(this, deviceInfo)
+    var driverLiveData: MutableLiveData<DriverInfo> = MutableLiveData()
+
+    @SuppressLint("CheckResult")
+    fun createToken(deviceInfo: CreateToken) {
+        repository.createToken(deviceInfo)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                if (it.error == null)
+                    App.instance!!.sharedPreferences!!.edit().putString("token", it.result.token)
+                        .apply()
+                else
+                    Toast.makeText(context, "${it.error} try later", Toast.LENGTH_LONG).show()
+            }, {
+                Log.d("233", it.localizedMessage)
+
+            })
     }
 
-    override fun onTokenCreated(token: Token) {
-        if (token.error == null)
-            App.instance!!.sharedPreferences!!.edit().putString("token", token.result.token).apply()
-        else
-            Toast.makeText(context, "${token.error} try later", Toast.LENGTH_LONG).show()
+
+    @SuppressLint("CheckResult")
+    fun sendGeo(lat: Double, lon: Double) {
+
+        val point = PointX(lat, lon)
+        val item = GeoItemX(point, "2020-07-03 12:44:12", 60, 2101015, 1)
+        var geo = GeoX()
+        geo.add(item)
+        repository.sendGeo(App.instance!!.sharedPreferences!!.getString("token", "")!!, geo).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                geoLiveData.postValue(it)
+            }, {
+                Log.d("233", it.localizedMessage)
+            })
+
+
     }
 
-    fun sendGeo() {
-        networkManager.sendGeo(App.instance!!.sharedPreferences!!.getString("token",null)!!,
-            GeoItem(Point(55.66969, 55.66969), "2020-06-28 06:38", 60, 2101015, 5)
-        , this)
+
+    @SuppressLint("CheckResult")
+    fun getDriverInfo() {
+        repository.getDriverInfo(App.instance!!.sharedPreferences!!.getString("token", "")!!)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe ({
+                driverLiveData.postValue(it)
+            },{
+                Log.d("233", it.localizedMessage)
+            })
     }
 
-    companion object{
+    companion object {
         val TAG: String = "ViewModel"
     }
 
-    override fun onDataLoaded(model: IsSend) {
-        geoLiveData.postValue(model)
-    }
 }
